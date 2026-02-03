@@ -3,6 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.api import api_router
 from app.core.config import settings
 
+from app.core.config import settings
+from app.core.database import engine, Base
+# Import all models to ensure they are registered
+from app.models import User, OsintLog, Transaction
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(title="BlackEagle OSINT API")
 
 # Configure CORS

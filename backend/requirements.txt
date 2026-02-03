@@ -12,3 +12,6 @@ bcrypt
 phonenumbers
 dnspython
 aiohttp
+sqlalchemy
+pymysql
+email-validator

@@ -10,6 +10,12 @@ from dataclasses import asdict
 
 from ...services.email_osint import get_email_osint_service
 from ...services.phone_osint import get_phone_osint_service
+from app.api import deps
+from app.models.user import User as UserModel
+from app.models.osint import OsintLog
+from fastapi import Depends
+from sqlalchemy.orm import Session
+import json
 
 router = APIRouter()
 
@@ -102,18 +108,17 @@ class PhoneOsintResponse(BaseModel):
 
 
 @router.post("/email")
-async def scan_email(request: EmailRequest):
+async def scan_email(
+    request: EmailRequest,
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
+):
     """
     Comprehensive email OSINT scan.
-    
-    Checks:
-    - Email format validation
-    - MX record verification
-    - Disposable email detection
-    - Gravatar profile lookup
-    - Data breach detection
-    - Social media discovery
     """
+    if current_user.token_balance < 1:
+        raise HTTPException(status_code=402, detail="Insufficient tokens")
+
     try:
         service = get_email_osint_service()
         result = await service.investigate(request.email, deep_scan=request.deep_scan)
@@ -159,6 +164,21 @@ async def scan_email(request: EmailRequest):
             "social_count": result.social_count
         }
         
+        # Deduct token
+        current_user.token_balance -= 1
+        db.add(current_user)
+        
+        # Log scan
+        log = OsintLog(
+            user_id=current_user.id,
+            module="email",
+            query=request.email,
+            tokens_used=1,
+            result=json.dumps(response_data)
+        )
+        db.add(log)
+        db.commit()
+
         return {
             "success": True,
             "data": response_data
@@ -171,17 +191,17 @@ async def scan_email(request: EmailRequest):
 
 
 @router.post("/phone")
-async def scan_phone(request: PhoneRequest):
+async def scan_phone(
+    request: PhoneRequest,
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
+):
     """
     Comprehensive phone OSINT scan.
-    
-    Checks:
-    - Phone number validation
-    - Carrier identification
-    - Location/region detection
-    - WhatsApp presence
-    - Telegram presence
     """
+    if current_user.token_balance < 1:
+        raise HTTPException(status_code=402, detail="Insufficient tokens")
+
     try:
         service = get_phone_osint_service()
         result = await service.investigate(request.phone)
@@ -208,6 +228,21 @@ async def scan_phone(request: PhoneRequest):
             "international_format": result.international_format
         }
         
+        # Deduct token
+        current_user.token_balance -= 1
+        db.add(current_user)
+        
+        # Log scan
+        log = OsintLog(
+            user_id=current_user.id,
+            module="phone",
+            query=request.phone,
+            tokens_used=1,
+            result=json.dumps(response_data)
+        )
+        db.add(log)
+        db.commit()
+
         return {
             "success": True,
             "data": response_data

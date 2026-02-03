@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     MAYAR_API_KEY: str = os.getenv("MAYAR_API_KEY", "")
     MAYAR_API_URL: str = "https://api.mayar.id/hl/v1"
 
+    # Database
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "mysql+pymysql://root:password@localhost/blackeagle")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "changethis_secret_key_generated_by_openssl_rand_hex_32")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8 # 8 days
+
     class Config:
         env_file = ["../.env.local", ".env", "../.env"]
         extra = "ignore"
