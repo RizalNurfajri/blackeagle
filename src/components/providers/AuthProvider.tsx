@@ -7,6 +7,7 @@ import type { User } from '@/types'
 
 interface AuthContextType {
     user: User | null
+    profile: User | null // Alias for user for backward compatibility
     loading: boolean
     signInWithEmail: (email: string, password: string) => Promise<void>
     signUpWithEmail: (email: string, password: string, username: string) => Promise<void>
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <AuthContext.Provider
             value={{
                 user,
+                profile: user,
                 loading,
                 signInWithEmail,
                 signUpWithEmail,
