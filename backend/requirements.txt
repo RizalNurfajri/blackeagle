@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+supabase
+python-dotenv
+httpx
+pydantic
+pydantic-settings
+python-multipart
+jose
+passlib
+bcrypt
+phonenumbers
+dnspython
+aiohttp
